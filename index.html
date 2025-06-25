@@ -1,3 +1,682 @@
-<html>
-  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VidMood - Track Your Video Emotions</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    .header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(45deg, #fff, #e0e0e0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 1rem;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+      min-width: 120px;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .video-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .video-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .video-wrapper {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .video-info {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .video-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+
+    .video-description {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 1rem;
+    }
+
+    .reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .reaction-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 0.8rem 1.2rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reaction-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .reaction-btn.voted {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-color: #fff;
+      animation: pulse 0.6s ease-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .vote-count {
+      background: rgba(255, 255, 255, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-left: 0.5rem;
+    }
+
+    .feedback {
+      text-align: center;
+      padding: 1rem;
+      margin-top: 1rem;
+      background: rgba(76, 175, 80, 0.2);
+      border-radius: 12px;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+
+    .feedback.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .add-video-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .add-video-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .modal h2 {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .form-group input::placeholder, .form-group textarea::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .form-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats {
+        gap: 1rem;
+      }
+      
+      .reactions {
+        justify-content: center;
+      }
+      
+      .reaction-btn {
+        font-size: 0.8rem;
+        padding: 0.6rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>VidMood</h1>
+    <p>Track your emotional responses to videos and discover your viewing patterns</p>
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-number" id="totalVotes">0</div>
+        <div class="stat-label">Total Votes</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="videosWatched">3</div>
+        <div class="stat-label">Videos</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="mostCommonMood">😊</div>
+        <div class="stat-label">Top Mood</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="video-grid" id="videoGrid">
+      <div class="video-card">
+        <div class="video-info">
+          <h3 class="video-title"> itais bar mitzvah</h3>
+          <p class="video-description"></p>
+        </div>
+        <div class="video-wrapper">
+          <video controls>
+            <source src="/Users/OriSlasky/Downloads/WhatsApp Video 2024-08-07 at 15.29.53.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="reactions">
+          <button class="reaction-btn" data-emotion="happy" data-video="1">
+            😊 Happy <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="sad" data-video="1">
+            😢 Sad <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="bored" data-video="1">
+            😐 Bored <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="excited" data-video="1">
+            🤩 Excited <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="angry" data-video="1">
+            😠 Angry <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="peaceful" data-video="1">
+            😌 Peaceful <span class="vote-count">0</span>
+          </button>
+        </div>
+        <div class="feedback" id="feedback-1"></div>
+      </div>
+
+      <div class="video-card">
+        <div class="video-info">
+          <h3 class="video-title">Sample Video 2</h3>
+          <p class="video-description">An inspiring motivational speech</p>
+        </div>
+        <div class="video-wrapper">
+          <video controls>
+            <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="reactions">
+          <button class="reaction-btn" data-emotion="happy" data-video="2">
+            😊 Happy <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="sad" data-video="2">
+            😢 Sad <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="bored" data-video="2">
+            😐 Bored <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="excited" data-video="2">
+            🤩 Excited <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="angry" data-video="2">
+            😠 Angry <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="peaceful" data-video="2">
+            😌 Peaceful <span class="vote-count">0</span>
+          </button>
+        </div>
+        <div class="feedback" id="feedback-2"></div>
+      </div>
+
+      <div class="video-card">
+        <div class="video-info">
+          <h3 class="video-title">Sample Video 3</h3>
+          <p class="video-description">A funny comedy sketch</p>
+        </div>
+        <div class="video-wrapper">
+          <video controls>
+            <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_5mb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="reactions">
+          <button class="reaction-btn" data-emotion="happy" data-video="3">
+            😊 Happy <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="sad" data-video="3">
+            😢 Sad <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="bored" data-video="3">
+            😐 Bored <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="excited" data-video="3">
+            🤩 Excited <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="angry" data-video="3">
+            😠 Angry <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="peaceful" data-video="3">
+            😌 Peaceful <span class="vote-count">0</span>
+          </button>
+        </div>
+        <div class="feedback" id="feedback-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="add-video-btn" onclick="showAddVideoModal()">+</button>
+
+  <div class="modal" id="addVideoModal">
+    <div class="modal-content">
+      <h2>Add New Video</h2>
+      <div class="form-group">
+        <label for="videoTitle">Video Title</label>
+        <input type="text" id="videoTitle" placeholder="Enter video title">
+      </div>
+      <div class="form-group">
+        <label for="videoDescription">Description</label>
+        <textarea id="videoDescription" rows="3" placeholder="Brief description of the video"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="videoUrl">Video URL</label>
+        <input type="url" id="videoUrl" placeholder="https://example.com/video.mp4">
+      </div>
+      <div class="form-buttons">
+        <button class="btn btn-primary" onclick="addVideo()">Add Video</button>
+        <button class="btn btn-secondary" onclick="closeAddVideoModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Store votes and video data
+    let votes = {};
+    let totalVotes = 0;
+    let videoCount = 3;
+    let nextVideoId = 4;
+
+    // Initialize vote tracking
+    function initializeVotes() {
+      const buttons = document.querySelectorAll('.reaction-btn');
+      buttons.forEach(button => {
+        const emotion = button.dataset.emotion;
+        const video = button.dataset.video;
+        const key = `${video}-${emotion}`;
+        if (!votes[key]) votes[key] = 0;
+      });
+    }
+
+    // Handle voting
+    function vote(emotion, videoId) {
+      const key = `${videoId}-${emotion}`;
+      const button = document.querySelector(`[data-emotion="${emotion}"][data-video="${videoId}"]`);
+      const countSpan = button.querySelector('.vote-count');
+      
+      // Remove any existing voted state from this video
+      const videoButtons = document.querySelectorAll(`[data-video="${videoId}"]`);
+      videoButtons.forEach(btn => btn.classList.remove('voted'));
+      
+      // Add vote and update display
+      votes[key] = (votes[key] || 0) + 1;
+      totalVotes++;
+      countSpan.textContent = votes[key];
+      button.classList.add('voted');
+      
+      // Show feedback
+      showFeedback(videoId, emotion);
+      
+      // Update stats
+      updateStats();
+      
+      console.log(`User voted ${emotion} on video ${videoId}`);
+    }
+
+    // Show feedback message
+    function showFeedback(videoId, emotion) {
+      const feedback = document.getElementById(`feedback-${videoId}`);
+      const messages = {
+        happy: "Great! Glad this video made you happy! 😊",
+        sad: "Thanks for sharing your feelings. Hope you're okay! 💙",
+        bored: "Noted! We'll try to find more engaging content for you.",
+        excited: "Awesome! Love your enthusiasm! 🎉",
+        angry: "We appreciate your honest feedback. 💪",
+        peaceful: "Wonderful! Peaceful content is so important. 🧘‍♀️"
+      };
+      
+      feedback.textContent = messages[emotion] || "Thank you for your feedback!";
+      feedback.classList.add('show');
+      
+      setTimeout(() => {
+        feedback.classList.remove('show');
+      }, 3000);
+    }
+
+    // Update statistics
+    function updateStats() {
+      document.getElementById('totalVotes').textContent = totalVotes;
+      document.getElementById('videosWatched').textContent = videoCount;
+      
+      // Find most common mood
+      const emotionCounts = {};
+      Object.keys(votes).forEach(key => {
+        const emotion = key.split('-')[1];
+        emotionCounts[emotion] = (emotionCounts[emotion] || 0) + votes[key];
+      });
+      
+      let mostCommon = '😊';
+      let maxCount = 0;
+      Object.entries(emotionCounts).forEach(([emotion, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          const emojiMap = {
+            happy: '😊', sad: '😢', bored: '😐', 
+            excited: '🤩', angry: '😠', peaceful: '😌'
+          };
+          mostCommon = emojiMap[emotion] || '😊';
+        }
+      });
+      
+      document.getElementById('mostCommonMood').textContent = mostCommon;
+    }
+
+    // Modal functions
+    function showAddVideoModal() {
+      document.getElementById('addVideoModal').style.display = 'block';
+    }
+
+    function closeAddVideoModal() {
+      document.getElementById('addVideoModal').style.display = 'none';
+      // Clear form
+      document.getElementById('videoTitle').value = '';
+      document.getElementById('videoDescription').value = '';
+      document.getElementById('videoUrl').value = '';
+    }
+
+    // Add new video
+    function addVideo() {
+      const title = document.getElementById('videoTitle').value;
+      const description = document.getElementById('videoDescription').value;
+      const url = document.getElementById('videoUrl').value;
+      
+      if (!title || !url) {
+        alert('Please fill in at least the title and URL');
+        return;
+      }
+      
+      const videoGrid = document.getElementById('videoGrid');
+      const videoCard = document.createElement('div');
+      videoCard.className = 'video-card';
+      videoCard.innerHTML = `
+        <div class="video-info">
+          <h3 class="video-title">${title}</h3>
+          <p class="video-description">${description}</p>
+        </div>
+        <div class="video-wrapper">
+          <video controls>
+            <source src="${url}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="reactions">
+          <button class="reaction-btn" data-emotion="happy" data-video="${nextVideoId}">
+            😊 Happy <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="sad" data-video="${nextVideoId}">
+            😢 Sad <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="bored" data-video="${nextVideoId}">
+            😐 Bored <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="excited" data-video="${nextVideoId}">
+            🤩 Excited <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="angry" data-video="${nextVideoId}">
+            😠 Angry <span class="vote-count">0</span>
+          </button>
+          <button class="reaction-btn" data-emotion="peaceful" data-video="${nextVideoId}">
+            😌 Peaceful <span class="vote-count">0</span>
+          </button>
+        </div>
+        <div class="feedback" id="feedback-${nextVideoId}"></div>
+      `;
+      
+      videoGrid.appendChild(videoCard);
+      videoCount++;
+      nextVideoId++;
+      
+      // Add event listeners to new buttons
+      const newButtons = videoCard.querySelectorAll('.reaction-btn');
+      newButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          vote(this.dataset.emotion, this.dataset.video);
+        });
+      });
+      
+      updateStats();
+      closeAddVideoModal();
+    }
+
+    // Initialize event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeVotes();
+      
+      // Add click listeners to all reaction buttons
+      document.querySelectorAll('.reaction-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          vote(this.dataset.emotion, this.dataset.video);
+        });
+      });
+      
+      // Close modal when clicking outside
+      document.getElementById('addVideoModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeAddVideoModal();
+        }
+      });
+    });
+  </script>
+</body>
 </html>
